@@ -1,6 +1,11 @@
 #include <bits/stdc++.h>
 #include <mpi.h>
 
+/*
+    mpic++ phonebook.cpp -o pb
+    mpirun -np 4 ./pb contact_list.txt Bob
+*/
+
 using namespace std;
 
 struct Contact
@@ -77,14 +82,29 @@ int main(int argc, char **argv)
     MPI_Comm_rank(MPI_COMM_WORLD, &rank); // Get process ID
     MPI_Comm_size(MPI_COMM_WORLD, &size); // Get total number of processes
 
-    string search_term;
+    // Check for proper usage: at least one phonebook file and a search term.
+    if (argc < 3)
+    {
+        if (rank == 0)
+            cerr << "Usage: mpirun -n <num_procs> " << argv[0] << " <phonebook_file> ... <search_term>\n";
+        MPI_Finalize();
+        return 1;
+    }
+
+    string search_term = argv[argc - 1]; // Get search term from command line arguments
+    if (search_term.empty())
+    {
+        printf("Search term cannot be empty.\n");
+        MPI_Abort(MPI_COMM_WORLD, 1); // Abort if search term is empty
+    }
+
     int search_term_len;
     double start, end;
 
+    string file_name = argv[1]; // Get file name from command line arguments
+
     if (rank == 0)
     {
-        printf("Enter the search term: ");
-        cin >> search_term; // Read search term from root process
 
         search_term_len = search_term.size(); // Get length of the search term
         if (search_term_len == 0)
@@ -99,7 +119,12 @@ int main(int argc, char **argv)
 
         vector<Contact> contacts;
 
-        ifstream file("contact_list.txt"); // Open the file for reading.
+        ifstream file(file_name); // Open the file
+        if (!file.is_open())
+        {
+            printf("Error opening file: %s\n", file_name.c_str());
+            MPI_Abort(MPI_COMM_WORLD, 1); // Abort if file cannot be opened
+        }
 
         string line;
         while (getline(file, line))
@@ -143,7 +168,7 @@ int main(int argc, char **argv)
                 result += recv;
         }
 
-        if(result.empty())
+        if (result.empty())
             printf("\nNo matches found for '%s'.\n\n", search_term.c_str());
         else
             printf("\nSearch result: %s\n\n", result.c_str());

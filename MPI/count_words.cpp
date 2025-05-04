@@ -49,7 +49,9 @@ int main(int argc, char **argv)
     MPI_Barrier(MPI_COMM_WORLD);        // Synchronize all processes
     double start_time = MPI_Wtime();    // Start timer
 
-    string fileName = "words.txt";
+    //string fileName = "words.txt";
+    string fileName = argv[1];
+
     vector<string> allWords;
 
     int totalWords;
