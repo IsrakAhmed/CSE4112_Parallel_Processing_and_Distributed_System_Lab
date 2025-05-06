@@ -15,6 +15,11 @@ int main(int argc, char **argv)
 
     K = 100, M = 50, N = 50, P = 50;
 
+    /*K = argv[1];
+    M = argv[2];
+    N = argv[3];
+    P = argv[4];*/
+
     /*if(rank == 0) {
         // Get matrix dimensions from user
         printf("Enter the number of matrices (K): ");
